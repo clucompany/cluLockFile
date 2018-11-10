@@ -1,7 +1,7 @@
 
 
-mod light;
-pub use self::light::*;
+mod easy;
+pub use self::easy::*;
 
 use std::io;
 
@@ -9,6 +9,7 @@ use std::io;
 #[derive(Debug)]
 pub enum ErrFileSysLock {
      LockExists,
+     RecoveryNotSupported,
      ErrIo(io::Error),
 }
 

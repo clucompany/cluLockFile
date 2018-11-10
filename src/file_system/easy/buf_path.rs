@@ -1,23 +1,23 @@
 
 
+use std::path::PathBuf;
 use LockProjectConst;
 use file_system::ErrFileSysLock;
 use LockProject;
 use std::fs::File;
-use std::path::Path;
 use std::fs;
 
 #[derive(Debug)]
-pub struct LockSliceEasy<'a>(&'a Path);
+pub struct LockBufEasy(PathBuf);
 
-impl<'a> LockSliceEasy<'a> {
+impl LockBufEasy {
      #[inline]
-     const fn new(path: &'a Path) -> Self {
-          LockSliceEasy(path)
+     const fn new(path: PathBuf) -> Self {
+          LockBufEasy(path)
      }
 
      #[inline]
-     fn _create_file(path: &'a Path) -> Result<Self, ErrFileSysLock> {
+     fn _create_file(path: PathBuf) -> Result<Self, ErrFileSysLock> {
           let _file = match File::create(&path) {
                Ok(a) => a,
                Err(e) => return Err( ErrFileSysLock::ErrIo(e) ),
@@ -27,9 +27,9 @@ impl<'a> LockSliceEasy<'a> {
      }
 }
 
-impl<'a> LockProjectConst<&'a Path> for LockSliceEasy<'a> {
+impl LockProjectConst<PathBuf> for LockBufEasy {
      type LockProject = Result<Self, ErrFileSysLock>;
-     fn create(path: &'a Path) -> Self::LockProject {
+     fn create(path: PathBuf) -> Self::LockProject {
           if path.exists() {
                return Err( ErrFileSysLock::LockExists )
           }
@@ -37,16 +37,13 @@ impl<'a> LockProjectConst<&'a Path> for LockSliceEasy<'a> {
           Self::_create_file(path)
      }
 
-     fn recovery(path: &'a Path) -> Self::LockProject {
-          if path.exists() {
-               return Ok( Self::new(path) );
-          }
-
-          Self::_create_file(path)
+     #[inline]
+     fn recovery(_path: PathBuf) -> Self::LockProject {
+          Err( ErrFileSysLock::RecoveryNotSupported )
      }
 }
 
-impl<'a> LockProject for LockSliceEasy<'a> {
+impl LockProject for LockBufEasy {
      #[inline]
      fn is_lock(&self) -> bool {
           self.0.exists()
@@ -55,9 +52,9 @@ impl<'a> LockProject for LockSliceEasy<'a> {
 
 
 
-impl<'a> Drop for LockSliceEasy<'a> {
+impl<'a> Drop for LockBufEasy {
      #[inline]
      fn drop(&mut self) {
-          let _e = fs::remove_file(self.0);
+          let _e = fs::remove_file(&self.0);
      }
 }
