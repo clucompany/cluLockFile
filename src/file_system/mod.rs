@@ -1,7 +1,11 @@
 
 
 mod easy;
+mod flock;
+
 pub use self::easy::*;
+pub use self::flock::*;
+
 
 use std::io;
 

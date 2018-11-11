@@ -1,9 +1,9 @@
 
 
 use std::path::PathBuf;
-use LockProjectConst;
+use LockFileConst;
 use file_system::ErrFileSysLock;
-use LockProject;
+use LockFile;
 use std::fs::File;
 use std::fs;
 
@@ -27,9 +27,9 @@ impl LockBufEasy {
      }
 }
 
-impl LockProjectConst<PathBuf> for LockBufEasy {
-     type LockProject = Result<Self, ErrFileSysLock>;
-     fn create(path: PathBuf) -> Self::LockProject {
+impl LockFileConst<PathBuf> for LockBufEasy {
+     type LockFile = Result<Self, ErrFileSysLock>;
+     fn create(path: PathBuf) -> Self::LockFile {
           if path.exists() {
                return Err( ErrFileSysLock::LockExists )
           }
@@ -38,12 +38,12 @@ impl LockProjectConst<PathBuf> for LockBufEasy {
      }
 
      #[inline]
-     fn recovery(_path: PathBuf) -> Self::LockProject {
+     fn recovery(_path: PathBuf) -> Self::LockFile {
           Err( ErrFileSysLock::RecoveryNotSupported )
      }
 }
 
-impl LockProject for LockBufEasy {
+impl LockFile for LockBufEasy {
      #[inline]
      fn is_lock(&self) -> bool {
           self.0.exists()

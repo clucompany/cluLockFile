@@ -1,8 +1,8 @@
 
 
-use LockProjectConst;
+use LockFileConst;
 use file_system::ErrFileSysLock;
-use LockProject;
+use LockFile;
 use std::fs::File;
 use std::path::Path;
 use std::fs;
@@ -27,9 +27,9 @@ impl<'a> LockSliceEasy<'a> {
      }
 }
 
-impl<'a> LockProjectConst<&'a Path> for LockSliceEasy<'a> {
-     type LockProject = Result<Self, ErrFileSysLock>;
-     fn create(path: &'a Path) -> Self::LockProject {
+impl<'a> LockFileConst<&'a Path> for LockSliceEasy<'a> {
+     type LockFile = Result<Self, ErrFileSysLock>;
+     fn create(path: &'a Path) -> Self::LockFile {
           if path.exists() {
                return Err( ErrFileSysLock::LockExists )
           }
@@ -38,12 +38,12 @@ impl<'a> LockProjectConst<&'a Path> for LockSliceEasy<'a> {
      }
 
      #[inline]
-     fn recovery(_path: &'a Path) -> Self::LockProject {
+     fn recovery(_path: &'a Path) -> Self::LockFile {
           Err( ErrFileSysLock::RecoveryNotSupported )
      }
 }
 
-impl<'a> LockProject for LockSliceEasy<'a> {
+impl<'a> LockFile for LockSliceEasy<'a> {
      #[inline]
      fn is_lock(&self) -> bool {
           self.0.exists()
