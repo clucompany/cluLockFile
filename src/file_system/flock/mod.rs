@@ -1,98 +1,74 @@
 
-extern crate cluFlock;
+//extern crate cluFlock;
 
+mod buf;
+mod slice;
 
-use LockFile;
-use LockFileConst;
-use file_system::ErrFileSysLock;
+use std::io::Error;
 use std::path::Path;
-use std::fs::File;
-use std::fs;
-use self::cluFlock::ExclusiveFlockLock;
-use self::cluFlock::Flock;
-
-#[derive(Debug)]
-pub struct LockFlock<'a>(File, &'a Path, ExclusiveFlockLock<'a>);
+use std::path::PathBuf;
+pub use self::buf::*;
+pub use self::slice::*;
 
 
-impl<'a> LockFlock<'a> {
-     #[inline]
-     fn new(file: File, path: &'a Path, lock: ExclusiveFlockLock<'a>) -> Self {
-          LockFlock(file, path, lock)
+#[inline(always)]
+pub fn flock<A: LockFlockConst>(a: A) -> A::LockFile {
+     a.flock_lock()
+}
+
+#[inline(always)]
+pub fn flock_reclock<A: LockFlockConst>(a: A) -> A::LockFile {
+     a.flock_lock()
+}
+
+pub trait LockFlockConst {
+     type LockFile;
+
+     fn flock_lock(self) -> Self::LockFile;
+     fn flock_reclock(self) -> Self::LockFile;
+}
+
+impl<'a> LockFlockConst for PathBuf {
+     type LockFile = Result<LockFlockBuf, Error>;
+
+     #[inline(always)]
+     fn flock_lock(self) -> Self::LockFile {
+          LockFlockBuf::lock(self)
+     }
+
+     #[inline(always)]
+     fn flock_reclock(self) -> Self::LockFile {
+          LockFlockBuf::recovery(self)
      }
 }
 
-impl<'a> LockFileConst<&'a Path> for LockFlock<'a> {
-     type LockFile = Result<Self, ErrFileSysLock>;
-     fn create(path: &'a Path) -> Self::LockFile {
-          match path.exists() {
-               true => return Err( ErrFileSysLock::LockExists ),
-               _ => {
-                    let file = match File::open(&path) {
-                         Ok(a) => a,
-                         Err(e) => return Err( ErrFileSysLock::ErrIo(e) ),
-                    };
 
-                    let lock = match file.exclusive_lock() {
-                         Ok(lock) => lock,
-                         Err(e) => return Err( ErrFileSysLock::ErrIo(e) ),
-                    };
+impl<'a, A: AsRef<Path>> LockFlockConst for &'a A {
+     type LockFile = Result<LockFlock<'a>, Error>;
 
-                    Ok( Self::new(file, path, lock) )
-               },
-          }
+     #[inline(always)]
+     fn flock_lock(self) -> Self::LockFile {
+          LockFlock::lock(self.as_ref())
      }
 
-     #[inline]
-     fn recovery(path: &'a Path) -> Self::LockFile {
-          match path.exists() {
-               true => {
-                    let file = match File::open(&path) {
-                         Ok(a) => a,
-                         Err(e) => return Err( ErrFileSysLock::ErrIo(e) ),
-                    };
-
-                    let lock = match file.try_exclusive_lock() {
-                         Ok(Some(lock)) => lock,
-                         Ok(None) => return Err( ErrFileSysLock::LockExists ),
-                         Err(e) => return Err( ErrFileSysLock::ErrIo(e) ),
-                    };
-
-                    Ok( Self::new(file, path, lock) )
-               },
-               _ => {
-                    let file = match File::open(&path) {
-                         Ok(a) => a,
-                         Err(e) => return Err( ErrFileSysLock::ErrIo(e) ),
-                    };
-
-                    let lock = match file.exclusive_lock() {
-                         Ok(lock) => lock,
-                         Err(e) => return Err( ErrFileSysLock::ErrIo(e) ),
-                    };
-
-                    Ok( Self::new(file, path, lock) )
-               },
-          }
-     }
-}
-
-impl<'a> LockFile for LockFlock<'a> {
-     #[inline]
-     fn is_lock(&self) -> bool {
-          true
+     #[inline(always)]
+     fn flock_reclock(self) -> Self::LockFile {
+          LockFlock::recovery(self.as_ref())
      }
 }
 
 
 
-impl<'a> Drop for LockFlock<'a> {
-     #[inline]
-     fn drop(&mut self) {
-          drop(self.0);
-          drop(self.2);
-          let _e = fs::remove_file(&self.1);
+impl<'a> LockFlockConst for &'a Path {
+     type LockFile = Result<LockFlock<'a>, Error>;
+
+     #[inline(always)]
+     fn flock_lock(self) -> Self::LockFile {
+          LockFlock::lock(self)
+     }
+
+     #[inline(always)]
+     fn flock_reclock(self) -> Self::LockFile {
+          LockFlock::recovery(self)
      }
 }
-
-

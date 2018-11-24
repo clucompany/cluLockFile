@@ -6,19 +6,10 @@ pub use self::file_system::*;
 use std::fmt::Debug;
 
 
-pub trait LockFile: Debug + Drop {
+pub trait Locker: Debug + Drop {
      fn is_lock(&self) -> bool;
 
      fn unlock(self) where Self: Sized {}
-     fn boxed(self) -> Box<LockFile> where Self: Sized + 'static {
-          Box::new(self)
-     }
+     fn boxed(self: Box<Self>) where Self: Sized {}
 }
 
-
-pub trait LockFileConst<A> {
-     type LockFile;
-
-     fn create(arg: A) -> Self::LockFile;
-     fn recovery(arg: A) -> Self::LockFile;
-}

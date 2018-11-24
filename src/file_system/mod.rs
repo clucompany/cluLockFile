@@ -1,20 +1,10 @@
 
 
-mod easy;
+mod path;
 mod flock;
 
-pub use self::easy::*;
+pub use self::path::*;
 pub use self::flock::*;
 
-
-use std::io;
-
-
-#[derive(Debug)]
-pub enum ErrFileSysLock {
-     LockExists,
-     RecoveryNotSupported,
-     ErrIo(io::Error),
-}
 
 
