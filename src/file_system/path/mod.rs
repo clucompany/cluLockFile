@@ -3,50 +3,53 @@
 mod slice;
 mod buf;
 
+pub use self::slice::*;
+pub use self::buf::*;
+use Lock;
+
 use std::io::Error;
 use std::path::Path;
 use std::path::PathBuf;
-pub use self::slice::*;
-pub use self::buf::*;
+
 
 
 #[inline(always)]
-pub fn path_lock<A: LockPathConst>(a: A) -> A::LockFile {
+pub fn path_lock<A: ConstPathLock>(a: A) -> Result<A::LockFile, Error> {
      a.path_lock()
 }
 
-pub trait LockPathConst {
-     type LockFile;
+pub trait ConstPathLock {
+     type LockFile: Lock;
 
-     fn path_lock(self) -> Self::LockFile;
+     fn path_lock(self) -> Result<Self::LockFile, Error>;
 }
 
-impl<'a> LockPathConst for PathBuf {
-     type LockFile = Result<LockPathBuf, Error>;
+impl<'a> ConstPathLock for PathBuf {
+     type LockFile = PathLock;
 
      #[inline(always)]
-     fn path_lock(self) -> Self::LockFile {
-          LockPathBuf::lock(self)
+     fn path_lock(self) -> Result<Self::LockFile, Error> {
+          PathLock::lock(self)
      }
 }
 
 
-impl<'a, A: AsRef<Path>> LockPathConst for &'a A {
-     type LockFile = Result<LockPath<'a>, Error>;
+impl<'a, A: AsRef<Path>> ConstPathLock for &'a A {
+     type LockFile = PathSliceLock<'a>;
 
      #[inline(always)]
-     fn path_lock(self) -> Self::LockFile {
-          LockPath::lock(self.as_ref())
+     fn path_lock(self) -> Result<Self::LockFile, Error> {
+          PathSliceLock::lock(self.as_ref())
      }
 }
 
 
 
-impl<'a> LockPathConst for &'a Path {
-     type LockFile = Result<LockPath<'a>, Error>;
+impl<'a> ConstPathLock for &'a Path {
+     type LockFile = PathSliceLock<'a>;
 
      #[inline(always)]
-     fn path_lock(self) -> Self::LockFile {
-          LockPath::lock(self)
+     fn path_lock(self) -> Result<Self::LockFile, Error> {
+          PathSliceLock::lock(self)
      }
 }

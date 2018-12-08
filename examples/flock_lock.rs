@@ -1,14 +1,18 @@
 
 extern crate cluLockFile;
 
-use cluLockFile::LockFlockConst;
-use cluLockFile::Locker;
 
+use cluLockFile::Lock;
+use cluLockFile::flock::ConstFlockFileLock;
+use std::io;
 
-pub fn main() {
-     let lock = "/tmp/test.lock".flock_reclock().unwrap();
+pub fn main() -> Result<(), io::Error> {
+     let lock = "/tmp/test.lock".flock_recovery_lock()?;
      
      println!("#1 {:?}, is_lock: {}", lock, lock.is_lock());
 
      drop(lock);
+
+
+     Ok( () )
 }

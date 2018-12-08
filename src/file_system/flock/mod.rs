@@ -1,74 +1,140 @@
 
-//extern crate cluFlock;
 
-mod buf;
-mod slice;
+mod path;
+mod file;
 
-use std::io::Error;
+use FileExpLock;
+use Lock;
 use std::path::Path;
+use std::io::Error;
+use std::fs::File;
 use std::path::PathBuf;
-pub use self::buf::*;
-pub use self::slice::*;
+pub use self::path::*;
+pub use self::file::*;
 
 
 #[inline(always)]
-pub fn flock<A: LockFlockConst>(a: A) -> A::LockFile {
+pub fn flock_lock<A: ConstFlockFileLock>(a: A) -> Result<A::LockFile, Error> {
      a.flock_lock()
 }
 
 #[inline(always)]
-pub fn flock_reclock<A: LockFlockConst>(a: A) -> A::LockFile {
-     a.flock_lock()
+pub fn flock_recovery_lock<A: ConstFlockFileLock>(a: A) -> Result<A::LockFile, Error> {
+     a.flock_recovery_lock()
 }
 
-pub trait LockFlockConst {
-     type LockFile;
+pub trait ConstFlockFileLock {
+     type LockFile: Lock + FileExpLock;
 
-     fn flock_lock(self) -> Self::LockFile;
-     fn flock_reclock(self) -> Self::LockFile;
+
+     fn flock_lock(self) -> Result<Self::LockFile, Error>;
+     fn flock_recovery_lock(self) -> Result<Self::LockFile, Error>;
 }
 
-impl<'a> LockFlockConst for PathBuf {
-     type LockFile = Result<LockFlockBuf, Error>;
+/*
+impl<'a, A: AsRef<File>> ConstFlockFileLock for &'a A {
+     type LockFile = FlockLockRawFileSlice<'a>;
 
      #[inline(always)]
-     fn flock_lock(self) -> Self::LockFile {
-          LockFlockBuf::lock(self)
-     }
-
-     #[inline(always)]
-     fn flock_reclock(self) -> Self::LockFile {
-          LockFlockBuf::recovery(self)
+     fn flock_lock(self) -> Result<Self::LockFile, Error> {
+          FlockLockRawFileSlice::lock(self.as_ref())
      }
 }
 
 
-impl<'a, A: AsRef<Path>> LockFlockConst for &'a A {
-     type LockFile = Result<LockFlock<'a>, Error>;
+impl<'a, A: AsMut<File>> ConstFlockFileLock for &'a mut A {
+     type LockFile = FlockLockRawFileSlice<'a>;
 
      #[inline(always)]
-     fn flock_lock(self) -> Self::LockFile {
-          LockFlock::lock(self.as_ref())
+     fn flock_lock(self) -> Result<Self::LockFile, Error> {
+          FlockLockRawFileSlice::lock(self.as_mut())
+     }
+}*/
+
+
+impl ConstFlockFileLock for File {
+     type LockFile = FlockLockRawFile;
+
+     #[inline(always)]
+     fn flock_lock(self) -> Result<Self::LockFile, Error> {
+          FlockLockRawFile::lock(self)
      }
 
      #[inline(always)]
-     fn flock_reclock(self) -> Self::LockFile {
-          LockFlock::recovery(self.as_ref())
+     fn flock_recovery_lock(self) -> Result<Self::LockFile, Error> {
+          FlockLockRawFile::lock(self)
      }
 }
 
 
-
-impl<'a> LockFlockConst for &'a Path {
-     type LockFile = Result<LockFlock<'a>, Error>;
+impl ConstFlockFileLock for PathBuf {
+     type LockFile = FlockLockFile;
 
      #[inline(always)]
-     fn flock_lock(self) -> Self::LockFile {
-          LockFlock::lock(self)
+     fn flock_lock(self) -> Result<Self::LockFile, Error> {
+          FlockLockFile::lock(self)
      }
 
      #[inline(always)]
-     fn flock_reclock(self) -> Self::LockFile {
-          LockFlock::recovery(self)
+     fn flock_recovery_lock(self) -> Result<Self::LockFile, Error> {
+          FlockLockFile::recovery(self)
+     }
+}
+
+
+impl<'a, A: AsRef<Path>> ConstFlockFileLock for &'a A {
+     type LockFile = FlockLockFileSlice<'a>;
+
+     #[inline(always)]
+     fn flock_lock(self) -> Result<Self::LockFile, Error> {
+          FlockLockFileSlice::lock(self.as_ref())
+     }
+
+     #[inline(always)]
+     fn flock_recovery_lock(self) -> Result<Self::LockFile, Error> {
+          FlockLockFileSlice::recovery(self.as_ref())
+     }
+}
+
+impl<'a, A: AsMut<Path>> ConstFlockFileLock for &'a mut A {
+     type LockFile = FlockLockFileSlice<'a>;
+
+     #[inline(always)]
+     fn flock_lock(self) -> Result<Self::LockFile, Error> {
+          FlockLockFileSlice::lock(self.as_mut())
+     }
+
+     #[inline(always)]
+     fn flock_recovery_lock(self) -> Result<Self::LockFile, Error> {
+          FlockLockFileSlice::recovery(self.as_mut())
+     }
+}
+
+
+impl<'a> ConstFlockFileLock for &'a Path {
+     type LockFile = FlockLockFileSlice<'a>;
+
+     #[inline(always)]
+     fn flock_lock(self) -> Result<Self::LockFile, Error> {
+          FlockLockFileSlice::lock(self)
+     }
+
+     #[inline(always)]
+     fn flock_recovery_lock(self) -> Result<Self::LockFile, Error> {
+          FlockLockFileSlice::recovery(self)
+     }
+}
+
+impl<'a> ConstFlockFileLock for &'a mut Path {
+     type LockFile = FlockLockFileSlice<'a>;
+
+     #[inline(always)]
+     fn flock_lock(self) -> Result<Self::LockFile, Error> {
+          FlockLockFileSlice::lock(self)
+     }
+
+     #[inline(always)]
+     fn flock_recovery_lock(self) -> Result<Self::LockFile, Error> {
+          FlockLockFileSlice::recovery(self)
      }
 }
