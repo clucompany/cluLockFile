@@ -2,11 +2,13 @@
 extern crate cluFlock;
 
 
+use crate::Lock;
+
+
 use std::ops::Deref;
 use std::fs::File;
 use std::io::Error;
 use self::cluFlock::FileSliceFlock;
-use Lock;
 use self::cluFlock::Flock;
 
 #[derive(Debug)]

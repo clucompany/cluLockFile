@@ -5,6 +5,8 @@ authors = ["Денис Котляров <#Ulin Project 18, denis2005991@gmail.co
 repository = "https://github.com/clucompany/cluExtIO.git"
 license = " Apache-2.0"
 readme = "README.md"
+edition = "2018"
+
 
 [dependencies]
 cluFlock = { git = "https://github.com/clucompany/cluFlock" }

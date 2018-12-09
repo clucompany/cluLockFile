@@ -1,6 +1,7 @@
 
 
-use Lock;
+use crate::Lock;
+
 use std::io::Error;
 use std::path::Path;
 use std::fs;

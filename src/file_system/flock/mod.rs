@@ -3,8 +3,8 @@
 mod path;
 mod file;
 
-use FileExpLock;
-use Lock;
+use crate::FileExpLock;
+use crate::Lock;
 use std::path::Path;
 use std::io::Error;
 use std::fs::File;

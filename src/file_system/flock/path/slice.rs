@@ -2,13 +2,15 @@
 extern crate cluFlock;
 
 
-use FileExpLock;
+use crate::FileExpLock;
+use crate::Lock;
+
+
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::fs::File;
 use std::path::Path;
 use self::cluFlock::FileFlock;
-use Lock;
 use self::cluFlock::Flock;
 use std::io::ErrorKind::AlreadyExists;
 use std::fs;

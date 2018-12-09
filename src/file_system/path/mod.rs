@@ -5,7 +5,7 @@ mod buf;
 
 pub use self::slice::*;
 pub use self::buf::*;
-use Lock;
+use crate::Lock;
 
 use std::io::Error;
 use std::path::Path;
