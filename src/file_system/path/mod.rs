@@ -24,7 +24,7 @@ pub trait ConstPathLock {
      fn path_lock(self) -> Result<Self::LockFile, Error>;
 }
 
-impl<'a> ConstPathLock for PathBuf {
+impl ConstPathLock for PathBuf {
      type LockFile = PathLock;
 
      #[inline(always)]

@@ -1,5 +1,4 @@
 
-
 use crate::Lock;
 
 use std::io::Error;
@@ -28,7 +27,15 @@ impl<'a> PathSliceLock<'a> {
      }
 }
 
+impl<'a> Into<&'a Path> for PathSliceLock<'a> {
+     #[inline]
+     fn into(self) -> &'a Path {
+          self.0    
+     }
+}
+
 impl<'a> Lock for PathSliceLock<'a> {
+     #[inline]
      fn is_lock(&self) -> bool {
           self.0.exists()
      }
@@ -37,6 +44,6 @@ impl<'a> Lock for PathSliceLock<'a> {
 impl<'a> Drop for PathSliceLock<'a> {
      #[inline]
      fn drop(&mut self) {
-          let _e = fs::remove_file(self.0);
+          let _e = fs::remove_file(&self.0);
      }
 }

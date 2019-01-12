@@ -10,7 +10,7 @@ use std::ops::DerefMut;
 use std::ops::Deref;
 use std::fs::File;
 use self::cluFlock::FileFlock;
-use self::cluFlock::Flock;
+use self::cluFlock::ToFlock;
 use std::path::PathBuf;
 use std::io::ErrorKind::AlreadyExists;
 use std::fs;

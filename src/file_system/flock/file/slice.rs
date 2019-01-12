@@ -9,7 +9,7 @@ use std::ops::Deref;
 use std::fs::File;
 use std::io::Error;
 use self::cluFlock::FileSliceFlock;
-use self::cluFlock::Flock;
+use self::cluFlock::ToFlock;
 
 #[derive(Debug)]
 pub struct FlockLockRawFileSlice<'a>(FileSliceFlock<'a>);

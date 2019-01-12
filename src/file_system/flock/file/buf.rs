@@ -11,7 +11,7 @@ use std::ops::Deref;
 use self::cluFlock::FileFlock;
 use std::io::Error;
 use std::fs::File;
-use self::cluFlock::Flock;
+use cluFlock::ToFlock;
 
 #[derive(Debug)]
 pub struct FlockLockRawFile(FileFlock);

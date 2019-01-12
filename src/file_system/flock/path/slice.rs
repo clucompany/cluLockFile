@@ -11,7 +11,7 @@ use std::ops::DerefMut;
 use std::fs::File;
 use std::path::Path;
 use self::cluFlock::FileFlock;
-use self::cluFlock::Flock;
+use self::cluFlock::ToFlock;
 use std::io::ErrorKind::AlreadyExists;
 use std::fs;
 use std::io::Error;
@@ -36,7 +36,7 @@ impl<'a> FlockLockFileSlice<'a> {
      pub fn lock(path: &'a Path) -> Result<Self, Error> {
           let (file_lock, drop_path) = match OpenOptions::new().write(true).create_new(true).open(path) {
                Ok(file) => {
-                    let drop_path = DropPath::new(path);
+                    let drop_path = DropPath(path);
 
                     (file.try_exclusive_lock()?, drop_path)
                },
@@ -49,7 +49,7 @@ impl<'a> FlockLockFileSlice<'a> {
      pub fn recovery(path: &'a Path) -> Result<Self, Error> {
           let (lock, option_drop_path) = match OpenOptions::new().write(true).create_new(true).open(path) {
                Ok(file) => {
-                    let drop_path = DropPath::new(path);
+                    let drop_path = DropPath(path);
                     
                     ( file.wait_exclusive_lock()?, Some( drop_path ) )
                },
@@ -107,13 +107,6 @@ impl<'a> DerefMut for FlockLockFileSlice<'a> {
 
 #[derive(Debug)]
 struct DropPath<'a>(&'a Path);
-
-impl<'a> DropPath<'a> {
-     #[inline]
-     const fn new(p: &'a Path) -> Self {
-          DropPath(p)
-     }
-}
 
 impl<'a> Drop for DropPath<'a> {
      fn drop(&mut self) {

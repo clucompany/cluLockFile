@@ -13,7 +13,7 @@ pub trait Lock: Debug {
      fn is_lock(&self) -> bool;
 
      fn unlock(self) where Self: Sized {}
-     fn boxed(self: Box<Self>) where Self: Sized {}
+     fn unlock_boxed(self: Box<Self>) where Self: Sized {}
 }
 
 
