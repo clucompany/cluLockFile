@@ -1,22 +1,21 @@
+#![feature(const_fn)]
+#![allow(non_snake_case)]
+
+mod check;
+pub use self::check::*;
+
+mod type_check;
+pub use self::type_check::*;
+
+mod error;
+pub use self::error::*;
+
+pub mod file_system;
 
 
-
-mod file_system;
-use std::ops::DerefMut;
-use std::fs::File;
-use std::ops::Deref;
-pub use self::file_system::*;
-
-use std::fmt::Debug;
-
-pub trait Lock: Debug {
-     fn is_lock(&self) -> bool;
-
-     fn unlock(self) where Self: Sized {}
-     fn unlock_boxed(self: Box<Self>) where Self: Sized {}
+pub trait Locker {
+	fn is_lock(&self) -> IsLock;
+	fn check_lock(self) -> CheckLock<Self> where Self: Sized;
+	fn exists(&self) -> bool;
 }
-
-
-pub trait FileExpLock: Lock + Debug + Deref<Target = File> + DerefMut + AsRef<File> + AsMut<File> {}
-
 

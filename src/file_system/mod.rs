@@ -1,9 +1,6 @@
 
+mod path;
+pub use self::path::*;
 
-pub mod path;
-pub mod flock;
-
-//pub use self::path::*;
-//pub use self::flock::*;
-
-
+mod flock;
+pub use self::flock::*;
