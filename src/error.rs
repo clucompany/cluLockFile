@@ -10,6 +10,7 @@ pub struct LockFileError<T> {
 }
 
 impl<T> LockFileError<T> {
+	#[inline]
 	pub const fn new(a: T, err: io::Error) -> Self {
 		Self {
 			value: a,
@@ -48,17 +49,17 @@ impl<T> From<FlockError<T>> for LockFileError<T> {
 }
 
 impl<T> Deref for LockFileError<T> {
-	type Target = io::Error;	
+	type Target = io::Error;
 	
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target {
-		&self.error	
+		&self.error
 	}
 }
 
 impl<T> From<(T, io::Error)> for LockFileError<T> {
 	#[inline(always)]
 	fn from((t, err): (T, io::Error)) -> Self {
-		LockFileError::new(t, err)	
+		Self::new(t, err)	
 	}
 }

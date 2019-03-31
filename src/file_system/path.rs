@@ -42,11 +42,11 @@ mod unlock {
 	use std::fs;
 	use std::io;
 
-	pub trait PathUnlock {
-		fn unlock(&mut self) -> Result<(), io::Error> where Self: Sized;
+	pub trait PathUnlock: Sized {
+		fn unlock(&mut self) -> Result<(), io::Error>;
 	}
 
-	impl<A> PathUnlock for A where A: AsRef<Path> {
+	impl<A> PathUnlock for A where A: AsRef<Path> + Sized {
 		#[inline(always)]
 		fn unlock(&mut self) -> Result<(), io::Error> {
 			fs::remove_file(self)
@@ -145,11 +145,11 @@ impl<T> Drop for PathLock<T> where T: PathElement {
 }
 
 
-pub trait PathLockTo where Self: PathElement {
-	fn path_lock(self) -> Result<PathLock<Self>, LockFileError<Self>> where Self: Sized;
+pub trait PathLockTo where Self: PathElement + Sized {
+	fn path_lock(self) -> Result<PathLock<Self>, LockFileError<Self>>;
 }
 
-impl<T> PathLockTo for T where T: PathElement {
+impl<T> PathLockTo for T where T: PathElement + Sized {
 	#[inline(always)]
 	fn path_lock(self) -> Result<PathLock<T>, LockFileError<T>> {
 		PathLock::lock(self)

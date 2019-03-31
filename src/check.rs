@@ -1,5 +1,6 @@
 
 use std::fmt::Display;
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum CheckLock<T> {
@@ -31,8 +32,8 @@ impl<T> Into<Option<T>> for CheckLock<T> {
 
 
 impl<T> Display for CheckLock<T> {
-	fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
-		write!(f, "{}", {
+	fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+		fmt.write_str({
 			match self {
 				CheckLock::Unknown(_a) => "CheckLock::Unknown(T)",
 				CheckLock::State(Some(_a)) => "CheckLock::State(Some(T))",

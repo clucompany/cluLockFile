@@ -125,7 +125,7 @@ impl<A> From<DropPath<A>> for PathOrDrop<A> where A: AsRef<Path> {
 impl<A> From<A> for PathOrDrop<A> where A: AsRef<Path> {
 	#[inline(always)]
 	fn from(a: A) -> Self {
-		PathOrDrop::Path(a)	
+		PathOrDrop::Path(a)
 	}
 }
 
@@ -154,10 +154,10 @@ pub struct DropPath<A> where A: AsRef<Path> {
 }
 
 impl<A> DropPath<A> where A: AsRef<Path> {
-	#[inline(always)]
+	#[inline]
 	pub const fn new(a: A) -> Self {
 		Self {
-			path: a	
+			path: a
 		}	
 	}
 }
@@ -191,13 +191,13 @@ impl<A> Drop for DropPath<A> where A: AsRef<Path> {
 }
 
 
-pub trait FlockLockTo where Self: AsRef<Path> {
-	fn flock_lock(self) -> Result<FlockLock<Self>, LockFileError<PathOrDrop<Self>>> where Self: Sized;
-	fn flock_recovery_lock(self) -> Result<FlockLock<Self>, LockFileError<PathOrDrop<Self>>> where Self: Sized;
+pub trait FlockLockTo where Self: AsRef<Path> + Sized {
+	fn flock_lock(self) -> Result<FlockLock<Self>, LockFileError<PathOrDrop<Self>>>;
+	fn flock_recovery_lock(self) -> Result<FlockLock<Self>, LockFileError<PathOrDrop<Self>>>;
 	
 }
 
-impl<T> FlockLockTo for T where T: AsRef<Path> {
+impl<T> FlockLockTo for T where T: AsRef<Path> + Sized {
 	#[inline(always)]
 	fn flock_lock(self) -> Result<FlockLock<Self>, LockFileError<PathOrDrop<Self>>> {
 		FlockLock::lock(self)
@@ -208,3 +208,4 @@ impl<T> FlockLockTo for T where T: AsRef<Path> {
 		FlockLock::recovery(self)
 	}
 }
+

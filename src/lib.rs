@@ -14,8 +14,9 @@ pub mod file_system;
 
 
 pub trait Locker {
+	fn exists(&self) -> bool;
+	
 	fn is_lock(&self) -> IsLock;
 	fn check_lock(self) -> CheckLock<Self> where Self: Sized;
-	fn exists(&self) -> bool;
 }
 
