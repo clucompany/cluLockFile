@@ -5,7 +5,7 @@ use std::fmt;
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum IsLock {
 	StateLock(bool),
-	Unknown(IsLockUnk),
+	Individually(IsLockType),
 }
 
 impl From<bool> for IsLock {
@@ -15,17 +15,17 @@ impl From<bool> for IsLock {
 	}
 }
 
-impl From<IsLockUnk> for IsLock {
+impl From<IsLockType> for IsLock {
 	#[inline(always)]
-	fn from(a: IsLockUnk) -> Self {
-		IsLock::Unknown(a)
+	fn from(a: IsLockType) -> Self {
+		IsLock::Individually(a)
 	}
 }
 
 impl Default for IsLock {
 	#[inline(always)]
 	fn default() -> Self {
-		IsLock::Unknown(Default::default())
+		IsLock::Individually(Default::default())
 	}
 }
 
@@ -33,8 +33,8 @@ impl Display for IsLock {
 	fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), std::fmt::Error> {
 		fmt.write_str({
 			match self {
-				IsLock::Unknown(IsLockUnk::Unknown) => "IsLock::Unknown(IsLockUnk::Unknown)",
-				IsLock::Unknown(IsLockUnk::AlwaysOn) => "IsLock::StateLock(IsLockUnk::AlwaysOn)",
+				IsLock::Individually(IsLockType::UnableToDetermine) => "IsLockType::Individually(IsLockType::UnableToDetermine)",
+				IsLock::Individually(IsLockType::AlwaysOn) => "IsLockType::Individually(IsLockType::AlwaysOn)",
 				IsLock::StateLock(true) => "IsLock::StateLock(true)",
 				IsLock::StateLock(false) => "IsLock::StateLock(false)",
 			}
@@ -44,31 +44,31 @@ impl Display for IsLock {
 
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub enum IsLockUnk {
-	Unknown,
+pub enum IsLockType {
+	UnableToDetermine,
 	AlwaysOn,
 }
 
-impl From<()> for IsLockUnk {
+impl From<()> for IsLockType {
 	#[inline(always)]
 	fn from(_a: ()) -> Self {
-		Default::default()	
+		Default::default()
 	}
 }
 
-impl Default for IsLockUnk {
+impl Default for IsLockType {
 	#[inline(always)]
 	fn default() -> Self {
-		IsLockUnk::Unknown	
+		IsLockType::UnableToDetermine	
 	}	
 }
 
-impl Display for IsLockUnk {
+impl Display for IsLockType {
 	fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
 		fmt.write_str({
 			match self {
-				IsLockUnk::Unknown => "IsLock::Unknown",
-				IsLockUnk::AlwaysOn => "IsLock::AlwaysOn",
+				IsLockType::UnableToDetermine => "IsLockType::UnableToDetermine",
+				IsLockType::AlwaysOn => "IsLockType::AlwaysOn",
 			}
 		})
 	}

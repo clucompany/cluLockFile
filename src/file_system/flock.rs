@@ -10,7 +10,7 @@ use crate::type_check::IsLock;
 use std::path::Path;
 use std::fs::OpenOptions;
 use cluFlock::ToFlock;
-use crate::IsLockUnk;
+use crate::IsLockType;
 use std::fs;
 
 #[derive(Debug)]
@@ -20,6 +20,7 @@ pub struct FlockLock<P> where P: AsRef<Path> {
 }
 
 impl<P> FlockLock<P> where P: AsRef<Path> {
+	#[inline]
 	const fn new(t: cluFlock::FlockLock<File>, p: Option<DropPath<P>>) -> Self {
 		Self {
 			path: t,
@@ -85,11 +86,11 @@ impl<P> FlockLock<P> where P: AsRef<Path> {
 	}
 	
 	pub const fn is_lock(&self) -> IsLock {
-		IsLock::Unknown(IsLockUnk::AlwaysOn)
+		IsLock::Individually(IsLockType::AlwaysOn)
 	}
 	
 	pub const fn check_lock(self) -> CheckLock<Self> {
-		CheckLock::Unknown(self)
+		CheckLock::MoveSelf(self)
 	}
 }
 

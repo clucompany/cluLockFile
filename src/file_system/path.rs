@@ -62,7 +62,8 @@ pub struct PathLock<T> where T: PathElement {
 }
 
 impl<T> PathLock<T> where T: PathElement {
-	pub fn new(f: File, a: T) -> Self {
+	#[inline]
+	pub const fn new(f: File, a: T) -> Self {
 		Self {
 			file: f,
 			path: a
