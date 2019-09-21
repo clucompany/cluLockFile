@@ -1,5 +1,5 @@
 
-extern crate cluLockFile;
+extern crate cluSyncFile;
 
 use cluLockFile::file_system::PathLockTo;
 use std::path::Path;
@@ -13,7 +13,7 @@ pub fn main() -> Result<(), io::Error> {
 	let light3_buf_lock = {
 		let mut path = Path::new("/tmp").to_path_buf();
 		path.push(format!("t{}.lock", 3));
-
+		
 		path
 	}.path_lock().unwrap();
 
