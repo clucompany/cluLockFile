@@ -1,7 +1,6 @@
 
 extern crate cluSyncFile;
 
-use cluLockFile::file_system::PathLockTo;
 use std::path::Path;
 use std::io;
 

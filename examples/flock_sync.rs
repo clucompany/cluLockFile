@@ -10,8 +10,6 @@ pub fn main() -> Result<(), io::Error> {
 	{
 		let lock = Path::new("/tmp/test.lock").flock_sync_create_file()?;
 
-		println!("{}", ::std::mem::size_of_val(&lock));
-		
 		println!("#1 {:?}, is_lock: {}", lock, lock.is_sync());
 	}
 
