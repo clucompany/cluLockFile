@@ -4,16 +4,16 @@ use std::ops::DerefMut;
 use std::ops::Deref;
 use std::io;
 
-pub trait SyncFileErrType where Self: Debug + Clone + PartialEq + PartialOrd {}
+pub trait LockFileErrEnum where Self: Debug + Clone + PartialEq + PartialOrd {}
 
 #[derive(Debug)]
-pub struct SyncFileErr<T, ET> where ET: SyncFileErrType {
+pub struct LockFileErr<T, ET> where ET: LockFileErrEnum {
 	data: T,
 	err_type: ET,
 	err: io::Error,
 }
 
-impl<T, ET> SyncFileErr<T, ET> where ET: SyncFileErrType {
+impl<T, ET> LockFileErr<T, ET> where ET: LockFileErrEnum {
 	#[inline]
 	pub const fn new(a: T, err: io::Error, err_type: ET) -> Self {
 		Self {
@@ -44,14 +44,14 @@ impl<T, ET> SyncFileErr<T, ET> where ET: SyncFileErrType {
 	}
 }
 
-impl<T, ET> From<SyncFileErr<T, ET>> for io::Error where ET: SyncFileErrType {
+impl<T, ET> From<LockFileErr<T, ET>> for io::Error where ET: LockFileErrEnum {
 	#[inline(always)]
-	fn from(a: SyncFileErr<T, ET>) -> io::Error {
+	fn from(a: LockFileErr<T, ET>) -> io::Error {
 		a.err
 	}
 }
 
-impl<T, ET> Deref for SyncFileErr<T, ET> where ET: SyncFileErrType {
+impl<T, ET> Deref for LockFileErr<T, ET> where ET: LockFileErrEnum {
 	type Target = io::Error;
 	
 	#[inline(always)]
@@ -60,7 +60,7 @@ impl<T, ET> Deref for SyncFileErr<T, ET> where ET: SyncFileErrType {
 	}
 }
 
-impl<T, ET> DerefMut for SyncFileErr<T, ET> where ET: SyncFileErrType {
+impl<T, ET> DerefMut for LockFileErr<T, ET> where ET: LockFileErrEnum {
 	#[inline(always)]
 	fn deref_mut(&mut self) -> &mut Self::Target {
 		&mut self.err

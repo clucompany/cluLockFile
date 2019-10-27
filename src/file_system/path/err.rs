@@ -1,10 +1,10 @@
 
-use crate::err::SyncFileErrType;
+use crate::err::LockFileErrEnum;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub enum ErrCreateFile {
-	CreateNewFile,
+pub enum CreateFileErr {
+	NewFile,
 }
 
-impl SyncFileErrType for ErrCreateFile {}
+impl LockFileErrEnum for CreateFileErr {}
 

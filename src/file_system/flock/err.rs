@@ -1,27 +1,36 @@
 
-use crate::err::SyncFileErrType;
+use crate::err::LockFileErrEnum;
 
+//
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub enum ErrFSFCreateFile {
+pub enum FlCreateFileErr {
+	CreateFile,
+	TryExclusiveFlock,
+	RemovePath,
+	
+	RemovePathAndTryExclusiveFlock,
+}
+impl LockFileErrEnum for FlCreateFileErr {}
+
+
+//
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub enum FlReadFileErr {
 	CreateFile,
 	TryExclusiveFlock,
 }
-impl SyncFileErrType for ErrFSFCreateFile {}
+impl LockFileErrEnum for FlReadFileErr {}
 
 
+//
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub enum ErrFSFReadFile {
-	CreateFile,
-	TryExclusiveFlock,
-}
-impl SyncFileErrType for ErrFSFReadFile {}
-
-
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub enum ErrFSFRecovery {
+pub enum FlRecoveryErr {
 	OpenFile,
 	CreateFile,
 	TryExFlockFile,
 	WaitExFlockFile,
+	
+	RemovePath,
+	WaitExFlockFileAndRemovePath,
 }
-impl SyncFileErrType for ErrFSFRecovery {}
+impl LockFileErrEnum for FlRecoveryErr {}

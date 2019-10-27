@@ -1,128 +1,114 @@
 
-use cluFlock::unlock::WaitFlockUnlock;
-use cluFlock::FlockLock;
-use cluFlock::element::FlockElement;
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::path::Path;
 
-
-pub trait FSFElement {}
-
-impl<T> FSFElement for FlockLock<T> where T: FlockElement + WaitFlockUnlock {}
-
+pub trait FlElement: Deref<Target = <Self as FlElement>::Target> + DerefMut {
+	type Target;
+	
+	fn is_auto_remove_path(&self) -> bool;
+}
 
 #[derive(Debug)]
-pub enum DataOrRemoveData<D, P> where P: AsRef<Path> {
-	Remove(AutoRemovePath<D, P>),
-	Data(D)
+pub struct DontAutoRemovePath<D> {
+	data: D
 }
-
-impl<D, P> FSFElement for DataOrRemoveData<D, P> where P: AsRef<Path> {}
-
-impl<D, P> DataOrRemoveData<D, P> where P: AsRef<Path> {
-	#[inline(always)]
-	pub fn remove_file(p: AutoRemovePath<D, P>) -> Self {
-		Self::Remove(p)
-	}
-	
-	#[inline(always)]
-	pub fn data(d: D) -> Self {
-		Self::Data(d)
-	}
-}
-
-impl<D, P> Deref for DataOrRemoveData<D, P> where P: AsRef<Path> {
+impl<D> FlElement for DontAutoRemovePath<D> {
 	type Target = D;
 	
 	#[inline]
-	fn deref(&self) -> &Self::Target {
-		match self {
-			Self::Remove(a) => a.deref(),
-			Self::Data(a) => a,
-		}
+	fn is_auto_remove_path(&self) -> bool {
+		false
 	}
 }
 
-impl<D, P> DerefMut for DataOrRemoveData<D, P> where P: AsRef<Path> {
+impl<D> DontAutoRemovePath<D> {
 	#[inline]
-	fn deref_mut(&mut self) -> &mut Self::Target {
-		match self {
-			Self::Remove(a) => a.deref_mut(),
-			Self::Data(a) => a,
-		}
-	}
-}
-
-
-#[derive(Debug)]
-pub struct PrevAutoRemovePath<P> where P: AsRef<Path> {
-	path: P,
-}
-
-#[derive(Debug)]
-struct __PrevAutoRemovePath<P> where P: AsRef<Path> {
-	path: P
-}
-
-impl<P> PrevAutoRemovePath<P> where P: AsRef<Path> {
-	#[inline]
-	pub const fn new(path: P) -> Self {
+	pub const fn new(d: D) -> Self {
 		Self {
-			path: path
+			data: d	
 		}
-	}
-	
-	pub fn into_dont_remove_file(self) -> P {
-		let new_self: __PrevAutoRemovePath<P> = unsafe {
-			cluFullTransmute::mem::full_transmute(std::mem::ManuallyDrop::new(self))
-		};
-		
-		new_self.path
-	}
-	
-	pub fn into_remove_file(self) -> (P, Result<(), std::io::Error>) {
-		let new_self: __PrevAutoRemovePath<P> = unsafe {
-			cluFullTransmute::mem::full_transmute(std::mem::ManuallyDrop::new(self))
-		};
-		
-		let remove_file = std::fs::remove_file(&new_self.path);
-		( new_self.path, remove_file )
-	}
-	
-	#[inline]
-	pub fn to_auto_remove_path<D>(self, data: D) -> AutoRemovePath<D, P> {
-		AutoRemovePath::prev(self, data)
 	}
 }
 
-impl<P> Deref for PrevAutoRemovePath<P> where P: AsRef<Path> {
-	type Target = P;
+impl<D> Deref for DontAutoRemovePath<D> {
+	type Target = <Self as FlElement>::Target;
 	
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target {
-		&self.path
+		&self.data
 	}
 }
 
-impl<P> DerefMut for PrevAutoRemovePath<P> where P: AsRef<Path> {
+impl<D> DerefMut for DontAutoRemovePath<D> {
 	#[inline(always)]
 	fn deref_mut(&mut self) -> &mut Self::Target {
-		&mut self.path
+		&mut self.data
 	}
 }
 
-impl<P> AsRef<Path> for PrevAutoRemovePath<P> where P: AsRef<Path> {
+
+
+#[derive(Debug)]
+pub struct MaybeAutoRemovePath<D, P> where P: AsRef<Path> {
+	data: D,
+	is_remove_path: Option<P>,
+}
+impl<D, P> FlElement for MaybeAutoRemovePath<D, P> where P: AsRef<Path> {
+	type Target = D;
+	
+	#[inline]
+	fn is_auto_remove_path(&self) -> bool {
+		match self.is_remove_path {
+			Some(_) => true,
+			_ => false,
+		}
+	}
+}
+
+
+impl<D, P> MaybeAutoRemovePath<D, P> where P: AsRef<Path> {
+	#[inline]
+	const fn __new(data: D, is_remove_path: Option<P>) -> Self {
+		Self {
+			data: data,
+			is_remove_path: is_remove_path,
+		}
+	}
+	
+	pub fn remove_path(data: D, path: P) -> Self {
+		Self::__new(data, Some(path))
+	}
+	
+	pub fn dont_remove_path(data: D) -> Self {
+		Self::__new(data, None)
+	}
+	
+	
+}
+
+impl<D, P> Deref for MaybeAutoRemovePath<D, P> where P: AsRef<Path> {
+	type Target = D;
+	
 	#[inline(always)]
-	fn as_ref(&self) -> &Path {
-		self.path.as_ref()
+	fn deref(&self) -> &Self::Target {
+		&self.data
 	}
 }
 
-impl<P> Drop for PrevAutoRemovePath<P> where P: AsRef<Path> {
+impl<D, P> DerefMut for MaybeAutoRemovePath<D, P> where P: AsRef<Path> {
+	#[inline(always)]
+	fn deref_mut(&mut self) -> &mut Self::Target {
+		&mut self.data
+	}
+}
+
+impl<D, P> Drop for MaybeAutoRemovePath<D, P> where P: AsRef<Path> {
 	#[inline]
 	fn drop(&mut self) {
-		let _e = std::fs::remove_file(self.path.as_ref());
+		if let Some(path) = &self.is_remove_path {
+			let _e = std::fs::remove_file(path);
+		}
 	}
 }
 
@@ -130,20 +116,26 @@ impl<P> Drop for PrevAutoRemovePath<P> where P: AsRef<Path> {
 #[derive(Debug)]
 pub struct AutoRemovePath<D, P> where P: AsRef<Path> {
 	data: D,
-	path: PrevAutoRemovePath<P>,
+	path: P,
 }
 
-impl<D, P> FSFElement for AutoRemovePath<D, P> where P: AsRef<Path> {}
+impl<D, P> FlElement for AutoRemovePath<D, P> where P: AsRef<Path> {
+	type Target = D;
+	
+	#[inline]
+	fn is_auto_remove_path(&self) -> bool {
+		true
+	}
+}
 
 
 impl<D, P> AutoRemovePath<D, P> where P: AsRef<Path> {
-	#[inline]
-	pub fn prev(prev: PrevAutoRemovePath<P>, data: D) -> Self {
-		Self::__new(data, prev)
+	pub fn new(data: D, path: P) -> Self {
+		Self::__new(data, path)
 	}
 	
 	#[inline]
-	const fn __new(data: D, path: PrevAutoRemovePath<P>) -> Self {
+	const fn __new(data: D, path: P) -> Self {
 		Self {
 			data: data,
 			path: path,
@@ -167,9 +159,8 @@ impl<D, P> DerefMut for AutoRemovePath<D, P> where P: AsRef<Path> {
 	}
 }
 
-impl<D, P> AsRef<Path> for AutoRemovePath<D, P> where P: AsRef<Path> {
-	#[inline(always)]
-	fn as_ref(&self) -> &Path {
-		self.path.as_ref()
+impl<D, P> Drop for AutoRemovePath<D, P> where P: AsRef<Path> {
+	fn drop(&mut self) {
+		let _e = std::fs::remove_file(&self.path);
 	}
 }

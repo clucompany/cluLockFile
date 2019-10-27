@@ -1,17 +1,17 @@
 
-use crate::file_system::path::err::ErrCreateFile;
-use crate::file_system::path::FilePathSync;
+use crate::file_system::path::err::CreateFileErr;
+use crate::file_system::path::FilePathLock;
 use crate::file_system::path::element::PathElement;
-use crate::err::SyncFileErr;
+use crate::err::LockFileErr;
 
-pub trait PathLockTo where Self: PathElement + Sized {
-	fn file_path_sync(self) -> Result<FilePathSync<Self>, SyncFileErr<Self, ErrCreateFile>>;
+pub trait ToPathLock where Self: PathElement + Sized {
+	fn file_path_lock(self) -> Result<FilePathLock<Self>, LockFileErr<Self, CreateFileErr>>;
 }
 
-impl<T> PathLockTo for T where T: PathElement + Sized {
+impl<T> ToPathLock for T where T: PathElement + Sized {
 	#[inline(always)]
-	fn file_path_sync(self) -> Result<FilePathSync<T>, SyncFileErr<T, ErrCreateFile>> {
-		FilePathSync::create_file(self)
+	fn file_path_lock(self) -> Result<FilePathLock<T>, LockFileErr<T, CreateFileErr>> {
+		FilePathLock::create_file(self)
 	}
 }
 

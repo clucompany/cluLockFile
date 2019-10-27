@@ -2,20 +2,18 @@
 #![feature(const_fn)]
 #![feature(const_constructor)]
 
-use crate::state::ToLockState;
-
 pub mod state {
-	mod a_state;
-	pub use self::a_state::*;
+	mod active_state;
+	pub use self::active_state::*;
 	
-	mod move_a_state;
-	pub use self::move_a_state::*;
-	
-	mod to;
-	pub use self::to::*;
+	mod move_active_state;
+	pub use self::move_active_state::*;
 }
 
 mod err;
+
+use crate::state::ActiveLockState;
+use crate::state::MoveActiveLockState;
 pub use self::err::*;
 
 
@@ -25,10 +23,12 @@ pub mod file_system {
 }
 
 
-pub type DefSyncFile<D> = crate::file_system::flock::FlockSyncFile<D>;
+pub type DefLockFile<D> = crate::file_system::flock::FlLockFile<D>;
 
-
-pub trait SyncFile: ToLockState {
-	fn is_sync(&self) -> bool;
+pub trait LockFile {
+	fn is_active_lock(&self) -> bool;
+	
+	fn move_active_lock_state(self) -> MoveActiveLockState<Self> where Self: Sized;
+	fn active_lock_state(&self) -> ActiveLockState;
 }
 
